@@ -18,11 +18,14 @@ python3.8 -m venv deepopacitynet
 source deepopacitynet/bin/activate 
 ```
 
+### Preprocessing
+We provided our custom code to preprocesss color fundus photos with sample examples in the "Preprocessing" folder.
+
 ### The trained models
-You can access the trained DeepOpacityNet model from the 'Model' folder. This model was trained on our development (i.e., internal) dataset.
+You can access the trained DeepOpacityNet model from the 'Model' folder. This model was trained on our development (i.e., internal) dataset. Also, we provided the codes used to generate the models used in the study in the "Model Codes" folder.
 
 ### Sample images
-We included the subset of the test set as sample images. This subset was used for the subjective grading in our study.
+We included the subset of the test set as sample preprocessed images. This subset was used for the subjective grading in our study.
 
 
 ### Run the script
