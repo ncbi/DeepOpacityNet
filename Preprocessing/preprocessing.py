@@ -8,13 +8,20 @@ from scipy import stats
 
 import matplotlib.pyplot as plt
 
-def get_shapes(img_gray):
+def get_shapes(img_rgb):
 
-    try:
-        
+    try:        
+                
+        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+
+        xy_size = 0.1
+
+        img_gray = cv2.resize(img_gray, (0,0), fx=xy_size, fy=xy_size)
+
+
         H, W = img_gray.shape # 0:H, 1:W
-        
-        
+
+
         img_blur = cv2.GaussianBlur(img_gray, (5,5), cv2.BORDER_DEFAULT) # img_gray.copy()
 
         cutoff = 5
@@ -249,11 +256,11 @@ def get_shapes(img_gray):
         #    thresh = bw_img.copy() # copy the binary image again ... remove morphological operations ... 
 
 
-    
+
         ## finding contours
 
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+
 
         ## sorting comp using their areas
 
@@ -269,56 +276,11 @@ def get_shapes(img_gray):
         ## bounding rectangle
 
         Rect = cv2.boundingRect(cnt)
-                        
-        
+
+
         ## min circle
 
         (xc, yc), radius = cv2.minEnclosingCircle(cnt)
-        
-        circle = (xc/W, yc/H, radius/min(W, H))
-
-
-        ## max inscribed square
-
-        # has the same center, but w/ side = sqrt(2) * r,
-        # the distance between center to any side = r / sqrt(2)
-
-        xs = xc - radius / np.sqrt(2)
-
-        ys = yc - radius / np.sqrt(2)
-
-
-        ws = np.sqrt(2) * radius
-
-        hs = np.sqrt(2) * radius
-
-
-        inner_bb = (xs/W, ys/H, ws/W, hs/H)
-        
-        ## adjusted iscribed square
-
-        if xs < 0:
-
-            ws = ws - np.abs(xs)
-
-            xs = 0        
-
-        if ys < 0:
-
-            hs = hs - np.abs(ys)
-
-            ys = 0
-
-        if xs + ws > W:
-
-            ws = W - xs
-
-        if ys + hs > H:
-
-            hs = H - ys
-                
-        
-        inner_bb_adj = (xs/W, ys/H, ws/W, hs/H)
 
 
         ## circumscribed square
@@ -335,8 +297,8 @@ def get_shapes(img_gray):
         hs = 2 * radius
 
 
-        outer_bb = (xs/W, ys/H, ws/W, hs/H)
-        
+        outer_bb = (xs, ys, ws, hs)
+
         ## adjusted circumscribed square
 
         if xs < 0:
@@ -358,22 +320,28 @@ def get_shapes(img_gray):
         if ys + hs > H:
 
             hs = H - ys
-        
-        
-        outer_bb_adj = (xs/W, ys/H, ws/W, hs/H)
-        
 
-    except Exception as e:               
-        
-        circle = (0.5, 0.5, 0.5)
-               
-        inner_bb = (0, 0, 1, 1)
-        
-        outer_bb = (0, 0, 1, 1)
-                               
-        inner_bb_adj = (0, 0, 1, 1)
-        
-        outer_bb_adj = (0, 0, 1, 1)
-    
-    return circle, inner_bb, inner_bb_adj, outer_bb, outer_bb_adj
+
+        outer_bb_adj = [xs/W, ys/H, ws/W, hs/H]
+
+
+        H, W, _ = img_rgb.shape
+
+        outer_x = int(outer_bb_adj[0] * W)
+
+        outer_y = int(outer_bb_adj[1] * H)
+
+        outer_w = int(outer_bb_adj[2] * W)
+
+        outer_h = int(outer_bb_adj[3] * H)
+
+        outer_bb_adj = [int(round(i)) for i in outer_bb_adj]
+
+        cropped = img_rgb[outer_y:outer_y+outer_h, outer_x:outer_x+outer_w, :]
+
+    except Exception as e:
+                        
+        cropped = img_rgb
+                        
+    return cropped
     
